@@ -24,10 +24,6 @@ async function run() {
      */
     if (sourceIssue.title.startsWith(epicPrefix))
         updateEpic(octokit, sourceIssue);
-    }
-    else
-    {
-    }
 }
 
 // Update Epic issue
