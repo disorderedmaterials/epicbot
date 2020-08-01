@@ -75,11 +75,11 @@ async function updateEpic(octokit, context, issue) {
 }
 
 // Update Task issue
-async function updateTask(octokit, context, issue) {
-    console.log("Updating task issue '" + issue.title + "'...");
-    console.log("  -- Issue number is " + issue.number);
-    console.log("  -- Issue body is '" + issue.body + "'");
-    console.log(issue);
+async function updateTask(octokit, context, taskIssue) {
+    console.log("Updating task issue '" + taskIssue.title + "'...");
+    console.log("  -- Issue number is " + taskIssue.number);
+    console.log("  -- Issue body is '" + taskIssue.body + "'");
+    console.log(taskIssue);
 
     /*
      * Normal issues may or may not be associated to an Epic. If they are not,
@@ -88,9 +88,21 @@ async function updateTask(octokit, context, issue) {
      */
     const timeline = await octokit.issues.listEventsForTimeline({
         ...context.repo,
-        issue_number: issue.number
+        issue_number: taskIssue.number
     });
     console.log(timeline);
+    // Look for 'cross-referenced' events, and check if those relate to Epics
+    for (event of timeline.data) {
+        if (event.event != "cross-referenced") continue;
+        console.log("FOUND A CROSS-REFERENCED TIMELINE EVENT:");
+        console.log(event.source);
+
+        // Get the referencing issue number from the 'source' data
+//         const refIssue = await octokit.issues.get({
+//             ...context.repo,
+//             issue_number: event.source.number
+//         });
+    }
 }
 
 // Run the action
