@@ -61,7 +61,7 @@ async function updateEpic(octokit, context, issue) {
         // Does the line start with checkbox MD, indicating a task?
         console.log("TEST LINE: " + line);
         const matchExpression = /( *)- \[(x| )\] #([0-9+]).*/g;
-        var bits = line.match(matchExpression);
+        var bits = matchExpression.exec(line);
         if (bits) {
             console.log("MATCH:");
             console.log(" -- Full: " + bits[0]);
