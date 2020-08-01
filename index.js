@@ -64,7 +64,10 @@ async function updateEpic(octokit, context, issue) {
         var bits = line.match(matchExpression);
         if (bits) {
             console.log("MATCH:");
-            console.log(bits);
+            console.log(" -- Full: " + bits[0]);
+            console.log(" -- Pre : [" + bits[1] + "]");
+            console.log(" -- Check : [" + bits[2] + "]");
+            console.log(" -- Number : [" + bits[3] + "]");
         }
     }
 }
