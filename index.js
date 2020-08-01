@@ -86,11 +86,11 @@ async function updateTask(octokit, context, issue) {
      * there is nothing more to do. If they are, then we must update the Epic
      * accordingly.
      */
-    const events = await octokit.issues.listEvents({
+    const timeline = await octokit.issues.listEventsForTimeline({
         ...context.repo,
         issue_number: issue.number
     });
-    console.log(events);
+    console.log(timeline);
 }
 
 // Run the action
