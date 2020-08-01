@@ -33,7 +33,40 @@ async function updateEpic(octokit, context, issue) {
     console.log("Updating Epic issue '" + issue.title + "'...");
     console.log("  -- Issue number is " + issue.number);
     console.log("  -- Issue body is '" + issue.body + "'");
-    console.log(issue);
+    //console.log(issue);
+
+    /*
+     * Issues forming the workload for this Epic are expected to be in a section of the main issue body called 'Workload',
+     * as indicated by a markdown heading ('#', '##', etc.).
+     */
+
+    // Split the Epic body into individual lines
+    var inWorkload = false
+    var body = issue.body.split(/\r?\n/g);
+    for (line of body) {
+        // Check for heading, potentially indicating the start of the workload section
+        if (line.startsWith("#")) {
+            if (line.endsWith("Workload")) {
+                inWorkload = true;
+                continue;
+            }
+            else if (inWorkload)
+                break;
+        }
+
+        // If we are not in the workload section, no need to do anything else
+        if (!inWorkload)
+            continue;
+
+        // Does the line start with checkbox MD, indicating a task?
+        console.log("TEST LINE: " + line);
+        const matchExpression = /( *)- \[(x| )\] #([0-9+]).*/g;
+        var bits = line.match(matchExpression);
+        if (bits) {
+            console.log("MATCH:");
+            console.log(bits);
+        }
+    }
 }
 
 // Run the action
