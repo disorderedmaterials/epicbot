@@ -25,14 +25,15 @@ async function run() {
      * Check the issue title to find out which is the case, using 'epicPrefix' to identify the issue as an actual Epic.
      */
     if (sourceIssue.title.startsWith(epicPrefix))
-        updateEpic(octokit, sourceIssue);
+        updateEpic(octokit, context, sourceIssue);
 }
 
 // Update Epic issue
-async function updateEpic(octokit, issue) {
+async function updateEpic(octokit, context, issue) {
     console.log("Updating Epic issue '" + issue.title + "'...");
     console.log("  -- Issue number is " + issue.number);
     console.log("  -- Issue body is '" + issue.body + "'");
+    console.log(issue);
 }
 
 // Run the action
