@@ -26,6 +26,8 @@ async function run() {
      */
     if (sourceIssue.title.startsWith(epicPrefix))
         updateEpic(octokit, context, sourceIssue);
+    else
+        updateTask(octokit, context, sourceIssue);
 }
 
 // Update Epic issue
@@ -70,6 +72,19 @@ async function updateEpic(octokit, context, issue) {
             console.log(" -- Number : [" + bits[3] + "]");
         }
     }
+}
+
+// Update Task issue
+async function updateTask(octokit, context, issue) {
+    console.log("Updating task issue '" + issue.title + "'...");
+    console.log("  -- Issue number is " + issue.number);
+    console.log("  -- Issue body is '" + issue.body + "'");
+    console.log(issue);
+
+    /*
+     * Normal issues may or may not be associated to an Epic. If they are not, there is nothing more to do.
+     * If they are, then we must update the Epic accordingly.
+     */
 }
 
 // Run the action
