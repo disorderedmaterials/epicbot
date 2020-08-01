@@ -8,7 +8,9 @@ async function run() {
     const context = github.context;
 
     // Safety check - only act on issues
-    var sourceIssue = context.payload.issue if (!sourceIssue) { return; }
+    var sourceIssue = context.payload.issue
+    if (!sourceIssue)
+        return;
 
     /*
      * The issue may be an Epic that has been created / updated, in which case we
