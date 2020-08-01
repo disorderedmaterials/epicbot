@@ -1,0 +1,24 @@
+{
+  "name": "epicbot",
+  "version": "1.0.0",
+  "description": "Bot for managing 'epic' issues, and associated workload issues",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/projectdissolve/epicbot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/projectdissolve/epicbot/issues"
+  },
+  "homepage": "https://github.com/projectdissolve/epicbot#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/github": "^4.0.0"
+  }
+}

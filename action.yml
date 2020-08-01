@@ -1,0 +1,13 @@
+name: 'EpicBot'
+description: 'Manage epic issues, and associated workload issues'
+inputs:
+  secret-token:
+    description: 'Secret token giving access to the repo'
+    required: true
+  epic-prefix:
+    description: 'Issue title prefix indicating it is an Epic'
+    required: true
+    default: 'Epic /'
+runs:
+  using: 'node12'
+  main: 'index.js'
