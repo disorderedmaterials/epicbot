@@ -26,7 +26,7 @@ async function run() {
     if (sourceIssue.title.startsWith(epicPrefix))
         updateEpicIssue(octokit, context, sourceIssue);
     else
-        updateEpicFromTask(octokit, context, sourceIssue);
+        updateEpicFromTask(octokit, context, epicPrefix, sourceIssue);
 }
 
 // Update Epic issue
@@ -75,11 +75,11 @@ async function updateEpicIssue(octokit, context, issue) {
 }
 
 // Update Task issue within Epic
-async function updateEpicFromTask(octokit, context, taskIssue) {
+async function updateEpicFromTask(octokit, context, epicPrefix, taskIssue) {
     console.log("Updating task issue '" + taskIssue.title + "'...");
     console.log("  -- Issue number is " + taskIssue.number);
     console.log("  -- Issue body is '" + taskIssue.body + "'");
-    console.log(taskIssue);
+//     console.log(taskIssue);
 
     /*
      * Normal issues may or may not be associated to an Epic. If they are not,
