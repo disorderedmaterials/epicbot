@@ -46,14 +46,14 @@ async function updateEpic(octokit, context, issue) {
     var inWorkload = false
     var body = issue.body.split(/\r?\n/g);
     for (line of body) {
-        // Check for heading, potentially indicating the start of the workload
-        // section
+        // Check for heading, potentially indicating the start of the workload section
         if (line.startsWith("#")) {
             if (line.endsWith("Workload")) {
-            inWorkload = true;
-            continue;
-            } else if (inWorkload)
-            break;
+                inWorkload = true;
+                continue;
+            }
+            else if (inWorkload)
+                break;
         }
 
         // If we are not in the workload section, no need to do anything else
@@ -62,14 +62,14 @@ async function updateEpic(octokit, context, issue) {
 
         // Does the line start with checkbox MD, indicating a task?
         console.log("TEST LINE: " + line);
-        const matchExpression = / (*)- \[(x |)\] #([0 - 9 + ]).*/ g;
+        const matchExpression = /( *)- \[(x| )\] #([0-9+]).*/g;
         var bits = matchExpression.exec(line);
         if (bits) {
             console.log("MATCH:");
             console.log(" -- Full: " + bits[0]);
-                console.log(" -- Pre : [" + bits[1] + "]");
-                console.log(" -- Check : [" + bits[2] + "]");
-                console.log(" -- Number : [" + bits[3] + "]");
+            console.log(" -- Pre : [" + bits[1] + "]");
+            console.log(" -- Check : [" + bits[2] + "]");
+            console.log(" -- Number : [" + bits[3] + "]");
         }
     }
 }
@@ -95,3 +95,4 @@ async function updateTask(octokit, context, issue) {
 
 // Run the action
 run()
+
