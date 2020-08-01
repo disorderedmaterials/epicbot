@@ -9,8 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Manage Epics
     steps:
-    - name: Manage Epics
-      uses: actions/epicbot
-      with:
-        action-token: "${{ secrets.MAIN_SECRET }}"
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Manage Epics
+        uses: ./ # Uses an action in the root directory
+        with:
+          action-token: "${{ secrets.MAIN_SECRET }}"
 
