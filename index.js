@@ -1,6 +1,5 @@
 const github = require("@actions/github");
 const core = require("@actions/core");
-const graphql = require("@octokit/graphql");
 
 async function run() {
     const secretToken = core.getInput("secret-token");
@@ -8,7 +7,7 @@ async function run() {
     const octokit = new github.GitHub(secretToken);
     const context = github.context;
 
-    // Only act on issues
+    // Safety check - only act on issues
     var sourceIssue = context.payload.issue
     if (!sourceIssue) {
         return;
@@ -24,16 +23,19 @@ async function run() {
      * Check the issue title to find out which is the case, using 'epicPrefix' to identify the issue as an actual Epic.
      */
     if (sourceIssue.title.startsWith(epicPrefix))
-        updateEpic(octoKit, sourceIssue);
+        updateEpic(octokit, sourceIssue);
     }
     else
     {
-    }       
+    }
 }
 
 // Update Epic issue
-async function updateEpic(octoKit, issue) {
+async function updateEpic(octokit, issue) {
     console.log("Updating Epic issue '" + issue.title + "'...");
+    console.log("  -- Issue number is " + issue.number);
+    console.log("  -- Issue body is '" + issue.body + "'");
 }
 
-
+// Run the action
+run()
