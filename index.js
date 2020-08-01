@@ -4,7 +4,7 @@ const core = require("@actions/core");
 async function run() {
     const secretToken = core.getInput("secret-token");
     const epicPrefix = core.getInput("epic-prefix");
-    const octokit = new github.GitHub(secretToken);
+    const octokit = new github.getOctokit(secretToken);
     const context = github.context;
 
     // Safety check - only act on issues
