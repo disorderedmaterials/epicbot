@@ -1,0 +1,16 @@
+name: EpicBot
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  manage_epics:
+    runs-on: ubuntu-latest
+    name: Manage Epics
+    steps:
+    - name: Manage Epics
+      uses: actions/epicbot
+      with:
+        action-token: "${{ secrets.MAIN_SECRET }}"
+
