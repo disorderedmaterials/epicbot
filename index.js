@@ -17,7 +17,7 @@ const context = github.context;
 // Main function
 async function run() {
     // Safety check - only act on issues
-    var sourceIssue = context.payload.issue
+    var sourceIssue = context.payload.issue;
     if (!sourceIssue)
         return;
 
@@ -267,39 +267,29 @@ function updateTaskInEpic(epicBody, taskIssue) {
 // Return whether all tasks in the supplied Epic are complete
 function allEpicTasksCompleted(epicBody) {
     var inWorkload = false
-    console.log(epicBody);
     var body = epicBody.split(/\r?\n/g);
-    console.log(body);
     for (line of body) {
-        console.log("Line of Body = " + line);
         // Check for heading, potentially indicating the start of the workload section
         if (line.startsWith("#")) {
             if (line.endsWith(workloadMarker)) {
-                console.log("It's the workload marker...");
                 inWorkload = true;
                 continue;
             }
             else if (inWorkload)
-            {
-                console.log("It's a heading *after* the workload, so we're done.");
                 return true;
-            }
         }
 
         // If we are not in the workload section, continue
         if (!inWorkload)
-        {
-            console.log("Not in the workload section, so continue with next line");
             continue;
-        }
 
         // Does the line start with checkbox markdown indicating a task?
-        var match = taskExpression.exec(line);
         console.log("Line = [" + line + "]");
+        console.log(taskExpression.test(line));
+        let match = taskExpression.exec(line);
         console.log(match);
         if (match == null)
             continue;
-        console.log(match.groups);
 
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
