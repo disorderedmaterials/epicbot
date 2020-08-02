@@ -88,6 +88,8 @@ async function updateEpicIssue(octokit, context, workloadMarker, epicIssue) {
             console.log(" -- Number : [" + bits[3] + "]");
         }
     }
+
+    return false;
 }
 
 // Update Task issue within Epic
@@ -110,6 +112,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
         });
     } catch(err) {
         console.log(err);
+        return false;
     }
     console.log(timeline);
 
@@ -136,7 +139,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
         var data = updateTaskInEpic(refIssue.body, workloadMarker, taskIssue);
         if (!data) {
             console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
-            return;
+            return false;
         }
         console.log("UPDATED EPIC BODY:");
         console.log(data.body);
@@ -150,6 +153,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
             });
         } catch(err) {
             console.log(err);
+            return false;
         }
 
         // Comment on the Epic?
