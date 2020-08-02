@@ -103,6 +103,9 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
      * Normal issues may or may not be associated to an Epic. If they are not,
      * there is nothing more to do. If they are, then we must update the Epic
      * accordingly.
+     *
+     * The task may be present in more than one Epic, so consider all referenced
+     * issues.
      */
     var timeline = null;
     try {
