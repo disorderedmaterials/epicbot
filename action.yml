@@ -12,6 +12,10 @@ inputs:
     description: 'Identifying text (within a heading) denoting start of workload issue section'
     required: false
     default: 'Workload'
+  close-completed-epics:
+    description: 'Whether to automatically close Epics when all workload tasks are complete'
+    required: false
+    default: true
 runs:
   using: 'node12'
   main: 'index.js'

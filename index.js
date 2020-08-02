@@ -5,6 +5,7 @@ const core = require("@actions/core");
 const secretToken = core.getInput("secret-token");
 const epicPrefix = core.getInput("epic-prefix");
 const workloadMarker = core.getInput("workload-marker");
+const closeCompletedEpics = core.getInput("close-completed-epics");
 
 // Construct Octokit object and get GitHub context
 const octokit = new github.getOctokit(secretToken);
@@ -178,6 +179,22 @@ async function updateEpicFromTask(taskIssue) {
         }
 
         console.log("Updated Epic #" + refIssue.number + " with new information for task #" + taskIssue.number);
+
+        // Close the Epic if all tasks are completed?
+        if (closeCompletedEpics) {
+            if (allEpicTasksCompleted(data.body)) {
+                try {
+                    await octokit.issues.update({
+                        ...context.repo,
+                        issue_number: refIssue.number,
+                        state: "closed"
+                    });
+                } catch(err) {
+                    console.log(err);
+                    return false;
+                }
+            }
+        }
     }
 
     return true;
@@ -249,6 +266,38 @@ function updateTaskInEpic(epicBody, taskIssue) {
     return null;
 }
 
+// Return whether all tasks in the supplied Epic are complete
+function allEpicTasksCompleted(epicBody) {
+    var inWorkload = false
+    var body = epicBody.split(/\r?\n/g);
+    for (line of body) {
+        // Check for heading, potentially indicating the start of the workload section
+        if (line.startsWith("#")) {
+            if (line.endsWith(workloadMarker)) {
+                inWorkload = true;
+                continue;
+            }
+            else if (inWorkload)
+                return true;
+        }
+
+        // If we are not in the workload section, no need to do anything else
+        if (!inWorkload)
+            continue;
+
+        // Does the line start with checkbox markdown indicating a task?
+        const matchExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
+        var match = matchExpression.exec(line);
+        if (!match)
+            continue;
+
+        // If the task is not complete, return false immediately
+        if (match.groups.closed != "x")
+            return false;
+    }
+
+    return true;
+}
+
 // Run the action
 run()
-
