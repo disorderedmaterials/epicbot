@@ -268,10 +268,11 @@ function updateTaskInEpic(epicBody, taskIssue) {
 function allEpicTasksCompleted(epicBody) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
-    for (line of body) {
+    var nBodyLines = body.length;
+    for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
-        if (line.startsWith("#")) {
-            if (line.endsWith(workloadMarker)) {
+        if (body[i].startsWith("#")) {
+            if (body[i].endsWith(workloadMarker)) {
                 inWorkload = true;
                 continue;
             }
@@ -284,9 +285,9 @@ function allEpicTasksCompleted(epicBody) {
             continue;
 
         // Does the line start with checkbox markdown indicating a task?
-        var match = taskExpression.exec(line);
-        console.log("Line = [" + line + "]");
-        if (!match)
+        var match = taskExpression.exec(body[i]);
+        console.log("Line = [" + body[i] + "]");
+        if (match == null)
             continue;
         console.log(match.groups);
 
