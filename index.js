@@ -124,14 +124,14 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
             return;
         }
         console.log("UPDATED EPIC BODY:");
-        console.log(data.newBody);
+        console.log(data.body);
 
         // Commit the updated Epic
         try {
             await octokit.issues.update({
                 ...context.repo,
                 issue_number: refIssue.number,
-                body: data.newBody
+                body: data.body
             });
         } catch(err) {
             console.log(err);
