@@ -201,7 +201,7 @@ function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
             return null;
 
         // Reconstitute the line, create a suitable comment, and return the new data
-        body[i] = match.groups.pre + "- [" + taskIssueClosed + "] #" + match.groups.number + " " + taskIssue.title + " MARKER";
+        body[i] = match.groups.pre + "- [" + taskIssueClosed + "] #" + taskIssue.number + " " + taskIssue.title;
 
         var comment = null;
         if (updateState && updateTitle)
