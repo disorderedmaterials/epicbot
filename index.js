@@ -18,6 +18,11 @@ async function run() {
     if (!sourceIssue)
         return;
 
+    console.log("Config:")
+    console.log("  - epicPrefix = " + epicPrefix);
+    console.log("  - workloadMarker = " + workloadMarker);
+    console.log("  - closeCompletedEpics = " + closeCompletedEpics);
+
     /*
      * The issue may be an Epic that has been created / updated, in which case we
      * reformat the 'Workload' section to include issue titles etc.
@@ -182,6 +187,7 @@ async function updateEpicFromTask(taskIssue) {
 
         // Close the Epic if all tasks are completed?
         if (closeCompletedEpics) {
+            console.log("Checking for completed Epic...");
             if (allEpicTasksCompleted(data.body)) {
                 try {
                     await octokit.issues.update({
@@ -290,6 +296,7 @@ function allEpicTasksCompleted(epicBody) {
         var match = matchExpression.exec(line);
         if (!match)
             continue;
+        console.log(match.groups);
 
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
