@@ -8,7 +8,7 @@ inputs:
     description: 'Issue title prefix indicating it is an Epic'
     required: true
     default: 'Epic /'
-  workoad-marker:
+  workload-marker:
     description: 'Identifying text (within a heading) denoting start of workload issue section'
     required: false
     default: 'Workload'
