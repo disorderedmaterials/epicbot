@@ -183,7 +183,7 @@ async function updateEpicFromTask(taskIssue) {
         // Close the Epic if all tasks are completed?
         if (closeCompletedEpics) {
             console.log("Checking for completed Epic...");
-            if (allEpicTasksCompleted(data.body)) {
+            if (allEpicTasksCompleted(data.body) === true) {
                 try {
                     await octokit.issues.update({
                         ...context.repo,
@@ -279,7 +279,7 @@ function allEpicTasksCompleted(epicBody) {
                 return true;
         }
 
-        // If we are not in the workload section, no need to do anything else
+        // If we are not in the workload section, continue
         if (!inWorkload)
             continue;
 
@@ -287,6 +287,7 @@ function allEpicTasksCompleted(epicBody) {
         var match = taskExpression.exec(line);
         if (!match)
             continue;
+        console.log(match.groups);
 
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
