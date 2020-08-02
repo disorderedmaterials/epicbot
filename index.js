@@ -8,7 +8,7 @@ const workloadMarker = core.getInput("workload-marker");
 const closeCompletedEpics = core.getInput("close-completed-epics");
 
 // Constants
-const taskExpression = /(?<pre> *)- \[(?<closed>.)\] #(?<number>[0-9+]) *(?<title>.*)/g;
+const taskExpression = /(?<pre> *)- \[(?<closed>.)\] #(?<number>[0-9]+) *(?<title>.*)/g;
 
 // Construct Octokit object and get GitHub context
 const octokit = new github.getOctokit(secretToken);
