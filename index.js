@@ -19,7 +19,7 @@ async function run() {
      *
      * It may also be a normal issue that is referenced within an Epic - in that
      * case we just update the corresponding entry in the 'Workload' section,
-     * marking the task as complete, abandoned etc.
+     * marking the task as complete, updating its title, etc.
      *
      * Check the issue title to find out which is the case, using 'epicPrefix' to
      * identify the issue as an actual Epic.
