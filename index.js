@@ -24,10 +24,25 @@ async function run() {
      * Check the issue title to find out which is the case, using 'epicPrefix' to
      * identify the issue as an actual Epic.
      */
-    if (sourceIssue.title.startsWith(epicPrefix))
-        updateEpicIssue(octokit, context, workloadMarker, sourceIssue);
-    else
-        updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, sourceIssue);
+    var result = null;
+    if (sourceIssue.title.startsWith(epicPrefix)) {
+        try {
+            result = await updateEpicIssue(octokit, context, workloadMarker, sourceIssue);
+        } catch(err) {
+            console.log(err);
+            return;
+        }
+    }
+    else {
+        try {
+            result = await updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, sourceIssue);
+        } catch(err) {
+            console.log(err);
+            return;
+        }
+    }
+
+    console.log(result);
 }
 
 // Update Epic issue
