@@ -233,9 +233,9 @@ function updateTaskInEpic(epicBody, taskIssue) {
 
         var comment = null;
         if (updateState && updateTitle)
-            comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + " and marked it as `" + (taskIssueClosed === true ? "closed" : "open") + "`.";
+            comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + " and marked it as `" + (taskIssueClosed === "x" ? "closed" : "open") + "`.";
         else if (updateState)
-            comment = "`EpicBot` marked task #" + taskIssue.number + " as `" + (taskIssueClosed === true ? "closed" : "open") + "`.";
+            comment = "`EpicBot` marked task #" + taskIssue.number + " as `" + (taskIssueClosed === "x" ? "closed" : "open") + "`.";
         else if (updateTitle)
             comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + ".";
 
