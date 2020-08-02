@@ -87,10 +87,14 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
      * there is nothing more to do. If they are, then we must update the Epic
      * accordingly.
      */
-    const timeline = await octokit.issues.listEventsForTimeline({
-        ...context.repo,
-        issue_number: taskIssue.number
-    });
+    try {
+        const timeline = await octokit.issues.listEventsForTimeline({
+            ...context.repo,
+            issue_number: taskIssue.number
+        });
+    } catch(err) {
+        console.log(err);
+    }
     console.log(timeline);
 
     // Look for 'cross-referenced' events, and check if those relate to Epics
@@ -113,21 +117,39 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
         console.log("Task issue #" + taskIssue.number + " is cross-referenced by Epic #" + refIssue.number);
 
         // Update the Epic issue body based on our own data if necessary
-        var newBody = updateTaskInEpic(refIssue.body, workloadMarker, taskIssue);
-        console.log("UPDATED EPIC BODY:");
-        console.log(newBody);
-        if (!newBody) {
+        var data = updateTaskInEpic(refIssue.body, workloadMarker, taskIssue);
+        if (!data) {
             console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
             return;
         }
+        console.log("UPDATED EPIC BODY:");
+        console.log(data.newBody);
 
         // Commit the updated Epic
-        const timeline = await octokit.issues.update({
-            ...context.repo,
-            issue_number: refIssue.number,
-            body: newBody
-        });
-        console.log("Updated Epic #" + refIssue.number + " with updated information for task #" + taskIssue.number);
+        try {
+            await octokit.issues.update({
+                ...context.repo,
+                issue_number: refIssue.number,
+                body: data.newBody
+            });
+        } catch(err) {
+            console.log(err);
+        }
+
+        // Comment on the Epic?
+        if (data.comment) {
+            try {
+                await octokit.issues.createComment({
+                    ...context.repo,
+                    issue_number: refIssue.number,
+                    body: data.comment
+                });
+            } catch(err) {
+                console.log(err);
+            }
+        }
+
+        console.log("Updated Epic #" + refIssue.number + " with new information for task #" + taskIssue.number);
     }
 }
 
@@ -165,24 +187,37 @@ function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
             continue;
 
         // Found the taskIssue in the list, so check its status and update as necessary
-        var update = false;
+        var updateTitle = false;
+        var updateState = false;
         const taskIssueClosed = taskIssue.state === "closed" ? "x" : " ";
         if (match.groups.closed != taskIssueClosed)
-            update = true;
+            updateState = true;
         if (match.groups.title != taskIssue.title)
-            update = true;
+            updateTitle = true;
 
         // Return null if no updates were necessary
-        if (!update)
+        if (!updateTitle && !updateState)
             return null;
 
-        // Reconstitute the line, and break out of the loop
+        // Reconstitute the line, create a suitable comment, and return the new data
         body[i] = match.groups.pre + "- [" + taskIssueClosed + "] #" + match.groups.number + " " + taskIssue.title + " MARKER";
-        break;
+
+        var comment = null;
+        if (updateState && updateTitle)
+            comment = "EpicBot refreshed the title for task #" + taskIssue.number + " and marked it as " + (taskIssueClosed ? "closed" : "open") + ".";
+        else if (updateState)
+            comment = "EpicBot marked task #" + taskIssue.number + " as " + (taskIssueClosed ? "closed" : "open") + ".";
+        else if (updateTitle)
+            comment = "EpicBot refreshed the title for task #" + taskIssue.number + ".";
+
+        // Reconstitute and return updated body text
+        return {
+            body: body.join("\r\n"),
+            comment: comment
+        }
     }
 
-    // Reconstitute and return updated body text
-    return body.join("\r\n");
+    return null;
 }
 
 // Run the action
