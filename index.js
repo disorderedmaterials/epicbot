@@ -8,7 +8,7 @@ const workloadMarker = core.getInput("workload-marker");
 const closeCompletedEpics = core.getInput("close-completed-epics");
 
 // Constants
-const taskExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
+const taskExpression = /(?<pre> *)- \[(?<closed>[x ])\] #(?<number>[0-9+]) *(?<title>.*)/g;
 
 // Construct Octokit object and get GitHub context
 const octokit = new github.getOctokit(secretToken);
@@ -285,6 +285,7 @@ function allEpicTasksCompleted(epicBody) {
 
         // Does the line start with checkbox markdown indicating a task?
         var match = taskExpression.exec(line);
+        console.log("Line = [" + line + "]");
         if (!match)
             continue;
         console.log(match.groups);
