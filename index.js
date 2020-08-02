@@ -7,6 +7,9 @@ const epicPrefix = core.getInput("epic-prefix");
 const workloadMarker = core.getInput("workload-marker");
 const closeCompletedEpics = core.getInput("close-completed-epics");
 
+// Constants
+const taskExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
+
 // Construct Octokit object and get GitHub context
 const octokit = new github.getOctokit(secretToken);
 const context = github.context;
@@ -18,10 +21,21 @@ async function run() {
     if (!sourceIssue)
         return;
 
+    // Print config
     console.log("Config:")
     console.log("  - epicPrefix = " + epicPrefix);
     console.log("  - workloadMarker = " + workloadMarker);
     console.log("  - closeCompletedEpics = " + closeCompletedEpics);
+
+    // Check config
+    if (epicPrefix === "") {
+        core.setFailed("Epic prefix cannot be an empty string.");
+        return;
+    }
+    if (workloadMarker === "") {
+        core.setFailed("Workload marker cannot be an empty string.");
+        return;
+    }
 
     /*
      * The issue may be an Epic that has been created / updated, in which case we
@@ -34,12 +48,13 @@ async function run() {
      * Check the issue title to find out which is the case, using 'epicPrefix' to
      * identify the issue as an actual Epic.
      */
+
     var result = null;
     if (sourceIssue.title.startsWith(epicPrefix)) {
         try {
             result = await updateEpicIssue(sourceIssue);
         } catch(err) {
-            console.log(err);
+            core.setFailed(err);
             return;
         }
     }
@@ -47,7 +62,7 @@ async function run() {
         try {
             result = await updateEpicFromTask(sourceIssue);
         } catch(err) {
-            console.log(err);
+            core.setFailed(err);
             return;
         }
     }
@@ -57,10 +72,7 @@ async function run() {
 
 // Update Epic issue
 async function updateEpicIssue(epicIssue) {
-    console.log("Updating Epic issue '" + epicIssue.title + "'...");
-    console.log("  -- Issue number is " + epicIssue.number);
-    console.log("  -- Issue body is '" + epicIssue.body + "'");
-    // console.log(issue);
+    console.log("Updating Epic issue #" + epicIssue.number + " (" + epicIssue.title + ")...");
 
     /*
      * Issues forming the workload for this Epic are expected to be in a section
@@ -87,16 +99,7 @@ async function updateEpicIssue(epicIssue) {
             continue;
 
         // Does the line start with checkbox MD, indicating a task?
-        console.log("TEST LINE: " + line);
-        const matchExpression = /( *)- \[(x| )\] #([0-9+]).*/g;
-        var bits = matchExpression.exec(line);
-        if (bits) {
-            console.log("MATCH:");
-            console.log(" -- Full: " + bits[0]);
-            console.log(" -- Pre : [" + bits[1] + "]");
-            console.log(" -- Check : [" + bits[2] + "]");
-            console.log(" -- Number : [" + bits[3] + "]");
-        }
+        var match = taskExpression.exec(line);
     }
 
     return false;
@@ -104,10 +107,7 @@ async function updateEpicIssue(epicIssue) {
 
 // Update Task issue within Epic
 async function updateEpicFromTask(taskIssue) {
-    console.log("Updating task issue '" + taskIssue.title + "'...");
-    console.log("  -- Issue number is " + taskIssue.number);
-    console.log("  -- Issue body is '" + taskIssue.body + "'");
-//     console.log(taskIssue);
+    console.log("Updating task issue #" + taskIssue.number + " (" + taskIssue.title + ")...");
 
     /*
      * Normal issues may or may not be associated to an Epic. If they are not,
@@ -124,17 +124,14 @@ async function updateEpicFromTask(taskIssue) {
             issue_number: taskIssue.number
         });
     } catch(err) {
-        console.log(err);
+        core.setFailed(err);
         return false;
     }
-    console.log(timeline);
 
     // Look for 'cross-referenced' events, and check if those relate to Epics
     for (event of timeline.data) {
         if (event.event != "cross-referenced")
             continue;
-        console.log("FOUND A CROSS-REFERENCED TIMELINE EVENT:");
-        console.log(event.source);
 
         // If the cross-referencing event is not an issue, continue
         if (event.source.type != "issue")
@@ -154,8 +151,6 @@ async function updateEpicFromTask(taskIssue) {
             console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
             return false;
         }
-        console.log("UPDATED EPIC BODY:");
-        console.log(data.body);
 
         // Commit the updated Epic
         try {
@@ -165,7 +160,7 @@ async function updateEpicFromTask(taskIssue) {
                 body: data.body
             });
         } catch(err) {
-            console.log(err);
+            core.setFailed(err);
             return false;
         }
 
@@ -178,7 +173,7 @@ async function updateEpicFromTask(taskIssue) {
                     body: data.comment
                 });
             } catch(err) {
-                console.log(err);
+                core.setFailed(err);
                 return false;
             }
         }
@@ -196,7 +191,7 @@ async function updateEpicFromTask(taskIssue) {
                         state: "closed"
                     });
                 } catch(err) {
-                    console.log(err);
+                    core.setFailed(err);
                     return false;
                 }
             }
@@ -227,12 +222,9 @@ function updateTaskInEpic(epicBody, taskIssue) {
             continue;
 
         // Does the line start with checkbox markdown indicating a task?
-        console.log("TEST LINE: " + body[i]);
-        const matchExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
-        var match = matchExpression.exec(body[i]);
+        var match = taskExpression.exec(body[i]);
         if (!match)
             continue;
-        console.log(match.groups);
 
         // Does the taskIssue number match the one on this line?
         if (match.groups.number != taskIssue.number)
@@ -292,11 +284,9 @@ function allEpicTasksCompleted(epicBody) {
             continue;
 
         // Does the line start with checkbox markdown indicating a task?
-        const matchExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
-        var match = matchExpression.exec(line);
+        var match = taskExpression.exec(line);
         if (!match)
             continue;
-        console.log(match.groups);
 
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
