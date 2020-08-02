@@ -25,9 +25,9 @@ async function run() {
      * identify the issue as an actual Epic.
      */
     if (sourceIssue.title.startsWith(epicPrefix))
-        updateEpicIssue(octokit, context, sourceIssue);
+        updateEpicIssue(octokit, context, workloadMarker, sourceIssue);
     else
-        updateEpicFromTask(octokit, context, epicPrefix, sourceIssue);
+        updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, sourceIssue);
 }
 
 // Update Epic issue
