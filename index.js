@@ -284,10 +284,7 @@ function allEpicTasksCompleted(epicBody) {
             continue;
 
         // Does the line start with checkbox markdown indicating a task?
-        console.log("Line = [" + line + "]");
-        console.log(taskExpression.test(line));
         let match = taskExpression.exec(line);
-        console.log(match);
         if (match == null)
             continue;
 
