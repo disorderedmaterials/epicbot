@@ -127,7 +127,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
             issue_number: refIssue.number,
             body: newBody
         });
-        console.log("Updated Epic #" + refIssue.number + "with updated information for task #" + taskIssue.number);
+        console.log("Updated Epic #" + refIssue.number + " with updated information for task #" + taskIssue.number);
     }
 }
 
