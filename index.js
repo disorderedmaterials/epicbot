@@ -88,7 +88,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
      * accordingly.
      */
     try {
-        const timeline = await octokit.issues.listEventsForTimeline({
+        let timeline = await octokit.issues.listEventsForTimeline({
             ...context.repo,
             issue_number: taskIssue.number
         });
