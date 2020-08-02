@@ -92,6 +92,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
         issue_number: taskIssue.number
     });
     console.log(timeline);
+
     // Look for 'cross-referenced' events, and check if those relate to Epics
     for (event of timeline.data) {
         if (event.event != "cross-referenced")
@@ -116,7 +117,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
         console.log("UPDATED EPIC BODY:");
         console.log(newBody);
         if (!newBody) {
-            console.log("Nothing to update - Epic body remains as-is.");
+            console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
             return;
         }
 
@@ -131,7 +132,7 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
 }
 
 // Update task within supplied body text from issue data given
-async function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
+function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
     var newBody = "";
