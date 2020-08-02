@@ -144,7 +144,7 @@ async function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
                 continue;
             }
             else if (inWorkload)
-                break;
+                return null;
         }
 
         // If we are not in the workload section, no need to do anything else
