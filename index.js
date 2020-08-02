@@ -140,7 +140,7 @@ function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
     for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith("workloadMarker")) {
+            if (body[i].endsWith(workloadMarker)) {
                 inWorkload = true;
                 continue;
             }
