@@ -2,7 +2,7 @@ name: EpicBot
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, closed, reopened, edited]
 
 jobs:
   manage_epics:
