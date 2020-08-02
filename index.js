@@ -151,7 +151,7 @@ async function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
         if (!inWorkload)
             continue;
 
-        // Does the line start with checkbox MD, indicating a task?
+        // Does the line start with checkbox markdown indicating a task?
         console.log("TEST LINE: " + body[i]);
         const matchExpression = /(?<pre> *)- \[(?<closed>x| )\] #(?<number>[0-9+]) *(?<title>.*)/g;
         var match = matchExpression.exec(body[i]);

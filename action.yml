@@ -1,5 +1,5 @@
 name: 'EpicBot'
-description: 'Manage epic issues, and associated workload issues'
+description: 'Manage Epic issues, and associated workload issues'
 inputs:
   secret-token:
     description: 'Secret token giving access to the repo'
