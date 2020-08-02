@@ -31,7 +31,7 @@ async function run() {
 }
 
 // Update Epic issue
-async function updateEpicIssue(octokit, context, workloadMarker epicIssue) {
+async function updateEpicIssue(octokit, context, workloadMarker, epicIssue) {
     console.log("Updating Epic issue '" + epicIssue.title + "'...");
     console.log("  -- Issue number is " + epicIssue.number);
     console.log("  -- Issue body is '" + epicIssue.body + "'");
