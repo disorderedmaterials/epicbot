@@ -4,6 +4,7 @@ const core = require("@actions/core");
 async function run() {
     const secretToken = core.getInput("secret-token");
     const epicPrefix = core.getInput("epic-prefix");
+    const workloadMarker = core.getInput("workload-marker");
     const octokit = new github.getOctokit(secretToken);
     const context = github.context;
 
@@ -30,10 +31,10 @@ async function run() {
 }
 
 // Update Epic issue
-async function updateEpicIssue(octokit, context, issue) {
-    console.log("Updating Epic issue '" + issue.title + "'...");
-    console.log("  -- Issue number is " + issue.number);
-    console.log("  -- Issue body is '" + issue.body + "'");
+async function updateEpicIssue(octokit, context, workloadMarker epicIssue) {
+    console.log("Updating Epic issue '" + epicIssue.title + "'...");
+    console.log("  -- Issue number is " + epicIssue.number);
+    console.log("  -- Issue body is '" + epicIssue.body + "'");
     // console.log(issue);
 
     /*
@@ -44,11 +45,11 @@ async function updateEpicIssue(octokit, context, issue) {
 
     // Split the Epic body into individual lines
     var inWorkload = false
-    var body = issue.body.split(/\r?\n/g);
+    var body = epicIssue.body.split(/\r?\n/g);
     for (line of body) {
         // Check for heading, potentially indicating the start of the workload section
         if (line.startsWith("#")) {
-            if (line.endsWith("Workload")) {
+            if (line.endsWith(workloadMarker)) {
                 inWorkload = true;
                 continue;
             }
@@ -75,7 +76,7 @@ async function updateEpicIssue(octokit, context, issue) {
 }
 
 // Update Task issue within Epic
-async function updateEpicFromTask(octokit, context, epicPrefix, taskIssue) {
+async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, taskIssue) {
     console.log("Updating task issue '" + taskIssue.title + "'...");
     console.log("  -- Issue number is " + taskIssue.number);
     console.log("  -- Issue body is '" + taskIssue.body + "'");
@@ -108,21 +109,29 @@ async function updateEpicFromTask(octokit, context, epicPrefix, taskIssue) {
         // Is the cross-referencing issue an Epic?
         if (!refIssue.title.startsWith(epicPrefix))
             continue;
+        console.log("Task issue #" + taskIssue.number + " is cross-referenced by Epic #" + refIssue.number);
 
         // Update the Epic issue body based on our own data if necessary
-        var newBody = updateTaskInEpic(refIssue.body, taskIssue);
+        var newBody = updateTaskInEpic(refIssue.body, workloadMarker, taskIssue);
         console.log("UPDATED EPIC BODY:");
         console.log(newBody);
-        // Get the referencing issue number / from the 'source' data
-//         const refIssue = await octokit.issues.get({
-//             ...context.repo,
-//             issue_number: event.source.number
-//         });
+        if (!newBody) {
+            console.log("Nothing to update - Epic body remains as-is.");
+            return;
+        }
+
+        // Commit the updated Epic
+        const timeline = await octokit.issues.update({
+            ...context.repo,
+            issue_number: refIssue.number,
+            body: newBody
+        });
+        console.log("Updated Epic #" + refIssue.number + "with updated information for task #" + taskIssue.number);
     }
 }
 
 // Update task within supplied body text from issue data given
-async function updateTaskInEpic(epicBody, taskIssue) {
+async function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
     var newBody = "";
@@ -130,7 +139,7 @@ async function updateTaskInEpic(epicBody, taskIssue) {
     for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith("Workload")) {
+            if (body[i].endsWith("workloadMarker")) {
                 inWorkload = true;
                 continue;
             }
