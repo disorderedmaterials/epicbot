@@ -169,18 +169,20 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
                 });
             } catch(err) {
                 console.log(err);
+                return false;
             }
         }
 
         console.log("Updated Epic #" + refIssue.number + " with new information for task #" + taskIssue.number);
     }
+
+    return true;
 }
 
 // Update task within supplied body text from issue data given
 function updateTaskInEpic(epicBody, workloadMarker, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
-    var newBody = "";
     var nBodyLines = body.length;
     for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
