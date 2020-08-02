@@ -87,8 +87,9 @@ async function updateEpicFromTask(octokit, context, epicPrefix, workloadMarker, 
      * there is nothing more to do. If they are, then we must update the Epic
      * accordingly.
      */
+    var timeline = null;
     try {
-        let timeline = await octokit.issues.listEventsForTimeline({
+        timeline = await octokit.issues.listEventsForTimeline({
             ...context.repo,
             issue_number: taskIssue.number
         });
