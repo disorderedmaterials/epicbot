@@ -103,13 +103,14 @@ async function updateEpicIssue(epicIssue) {
         let match = taskExpression.exec(body[i]);
         if (match == null)
             continue;
+        console.log(match.groups);
 
         // Retrieve task issue
         var taskIssue = null;
         try {
             taskIssue = await octokit.issues.get({
                 ...context.repo,
-                issue_number: match.number
+                issue_number: 4
             });
         } catch(err) {
             core.setFailed(err);
