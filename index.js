@@ -286,7 +286,7 @@ function updateTaskInEpic(epicBody, taskIssue) {
         body[i] = data.line;
         return {
             body: body.join("\r\n"),
-            comment: data.comment;
+            comment: data.comment
         }
     }
 
