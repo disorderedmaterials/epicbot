@@ -117,8 +117,8 @@ async function updateEpicIssue(epicIssue) {
         }
 
         // Did we find the issue?
-        if (taskIssue.number == refIssue.number) {
-            console.log("Error - task #" + match.number + " reference in Epic #" + refIssue.number + " but it doesn't exist.");
+        if (taskIssue.number != match.number) {
+            core.setFailed("Error - task #" + match.number + " reference in Epic #" + refIssue.number + " but it doesn't exist.");
             return false;
         }
 
@@ -154,7 +154,7 @@ async function updateEpicIssue(epicIssue) {
 
 // Update Task issue within Epic
 async function updateEpicFromTask(taskIssue) {
-    console.log("Updating task issue #" + taskIssue.number + " (" + taskIssue.title + ")...");
+    console.log("Searching issue #" + taskIssue.number + " (" + taskIssue.title + ") for Epic cross-references...");
 
     /*
      * Normal issues may or may not be associated to an Epic. If they are not,
