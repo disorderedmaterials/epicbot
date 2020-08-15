@@ -389,7 +389,7 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
                 await octokit.issues.createComment({
                     ...context.repo,
                     issue_number: taskIssue.number,
-                    body: "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " this issue following changes in Epic #" + epicNumber + "."
+                    body: "`EpicBot` " + (epicIssueClosed ? "closed" : "re-opened") + " this issue following changes in Epic #" + epicNumber + "."
                 });
             } catch(err) {
                 core.setFailed(err);
