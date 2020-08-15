@@ -123,7 +123,13 @@ async function updateEpic(epicIssue) {
         }
 
         // Update the Epic issue body based on the task issue data if it needs it
-        var result = updateTask(body[i], taskIssue.data, false);
+        var result = null;
+        try {
+            result = await updateTask(body[i], taskIssue.data, false);
+        } catch(err) {
+            core.setFailed(err);
+            return;
+        }
         if (!result) {
             console.log("Nothing to update for task #" + taskIssue.data.number + " in Epic #" + epicIssue.number + ".");
             continue;
@@ -205,8 +211,14 @@ async function updateEpicFromTask(taskIssue) {
         console.log("Task issue #" + taskIssue.number + " is cross-referenced by Epic #" + refIssue.number);
 
         // Update the Epic issue body based on our own data if necessary
-        var data = updateTaskInEpic(refIssue.body, taskIssue);
-        if (!data) {
+        var result = null;
+        try {
+            result = await updateTaskInEpic(refIssue.body, taskIssue);
+        } catch(err) {
+            core.setFailed(err);
+            return;
+        }
+        if (!result) {
             console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
             return false;
         }
@@ -216,7 +228,7 @@ async function updateEpicFromTask(taskIssue) {
             await octokit.issues.update({
                 ...context.repo,
                 issue_number: refIssue.number,
-                body: data.body
+                body: result.body
             });
         } catch(err) {
             core.setFailed(err);
@@ -224,12 +236,12 @@ async function updateEpicFromTask(taskIssue) {
         }
 
         // Comment on the Epic?
-        if (data.comment) {
+        if (result.comment) {
             try {
                 await octokit.issues.createComment({
                     ...context.repo,
                     issue_number: refIssue.number,
-                    body: data.comment
+                    body: result.comment
                 });
             } catch(err) {
                 core.setFailed(err);
@@ -242,7 +254,7 @@ async function updateEpicFromTask(taskIssue) {
         // Close the Epic if all tasks are completed?
         if (closeCompletedEpics) {
             console.log("Checking for completed Epic...");
-            if (allEpicTasksCompleted(data.body) === true) {
+            if (allEpicTasksCompleted(result.body) === true) {
                 try {
                     await octokit.issues.update({
                         ...context.repo,
@@ -261,7 +273,7 @@ async function updateEpicFromTask(taskIssue) {
 }
 
 // Update task within supplied body text from issue data given
-function updateTaskInEpic(epicBody, taskIssue) {
+async function updateTaskInEpic(epicBody, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
     var nBodyLines = body.length;
@@ -290,15 +302,21 @@ function updateTaskInEpic(epicBody, taskIssue) {
             continue;
 
         // Found the taskIssue in the list, so update as necessary
-        var data = updateTask(body[i], taskIssue, true);
-        if (!data)
+        var result = null;
+        try {
+            result = await updateTask(body[i], taskIssue, true);
+        } catch(err) {
+            core.setFailed(err);
+            return;
+        }
+        if (!result)
             return null;
 
         // Reconstitute and return updated body text
-        body[i] = data.line;
+        body[i] = result.line;
         return {
             body: body.join("\r\n"),
-            comment: data.comment
+            comment: result.comment
         }
     }
 
@@ -306,7 +324,7 @@ function updateTaskInEpic(epicBody, taskIssue) {
 }
 
 // Update task data, returning new line and comment if changes were made, or null if it was up to date
-function updateTask(taskLine, taskIssue, taskIsTruth) {
+async function updateTask(taskLine, taskIssue, taskIsTruth) {
     // Ensure that we're working with a task line
     var match = taskExpression.exec(taskLine);
     if (!match) {
@@ -375,7 +393,6 @@ function updateTask(taskLine, taskIssue, taskIsTruth) {
             "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " task #" + taskIssue.number + " following changes in the Epic."
         else if (updateTitle)
             comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + ".";
-        }
     }
 
     // Return updated data
