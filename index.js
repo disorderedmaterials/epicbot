@@ -343,7 +343,7 @@ async function updateTask(taskLine, taskIssue, taskIsTruth) {
     var updateState = false;
     const epicIssueClosed = match.groups.closed === "x";
     const taskIssueClosed = taskIssue.state === "closed";
-    if (epiciIssueClosed != taskIssueClosed)
+    if (epicIssueClosed != taskIssueClosed)
         updateState = true;
     if (match.groups.title != taskIssue.title)
         updateTitle = true;
