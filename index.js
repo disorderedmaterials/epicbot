@@ -156,16 +156,21 @@ async function updateEpic(epicIssue) {
     }
 
     // Commit the updated Epic body text
+    var newBody = body.join("\r\n");
     try {
         await octokit.issues.update({
             ...context.repo,
             issue_number: epicIssue.number,
-            body: body.join("\r\n")
+            body: newBody
         });
     } catch(err) {
         core.setFailed(err);
         return false;
     }
+
+    // Close the Epic if all tasks are completed?
+    if (closeCompletedEpics)
+        await closeEpicIfComplete(epicIssue.number, newBody);
 
     return true;
 }
@@ -202,24 +207,24 @@ async function updateEpicFromTask(taskIssue) {
         if (event.source.type != "issue")
             continue;
 
-        // Get referencing issue
-        const refIssue = event.source.issue;
+        // Get referencing Epic issue
+        const epicIssue = event.source.issue;
 
         // Is the cross-referencing issue an Epic?
-        if (!refIssue.title.startsWith(epicPrefix))
+        if (!epicIssue.title.startsWith(epicPrefix))
             continue;
-        console.log("Task issue #" + taskIssue.number + " is cross-referenced by Epic #" + refIssue.number);
+        console.log("Task issue #" + taskIssue.number + " is cross-referenced by Epic #" + epicIssue.number);
 
         // Update the Epic issue body based on our own data if necessary
         var result = null;
         try {
-            result = await updateTaskInEpic(refIssue.number, refIssue.body, taskIssue);
+            result = await updateTaskInEpic(epicIssue.number, epicIssue.body, taskIssue);
         } catch(err) {
             core.setFailed(err);
             return;
         }
         if (!result) {
-            console.log("Nothing to update - Epic #" + refIssue.number + " body remains as-is.");
+            console.log("Nothing to update - Epic #" + epicIssue.number + " body remains as-is.");
             return false;
         }
 
@@ -227,7 +232,7 @@ async function updateEpicFromTask(taskIssue) {
         try {
             await octokit.issues.update({
                 ...context.repo,
-                issue_number: refIssue.number,
+                issue_number: epicIssue.number,
                 body: result.body
             });
         } catch(err) {
@@ -240,7 +245,7 @@ async function updateEpicFromTask(taskIssue) {
             try {
                 await octokit.issues.createComment({
                     ...context.repo,
-                    issue_number: refIssue.number,
+                    issue_number: epicIssue.number,
                     body: result.comment
                 });
             } catch(err) {
@@ -249,24 +254,11 @@ async function updateEpicFromTask(taskIssue) {
             }
         }
 
-        console.log("Updated Epic #" + refIssue.number + " with new information for task #" + taskIssue.number);
+        console.log("Updated Epic #" + epicIssue.number + " with new information for task #" + taskIssue.number);
 
         // Close the Epic if all tasks are completed?
-        if (closeCompletedEpics) {
-            console.log("Checking for completed Epic...");
-            if (allEpicTasksCompleted(result.body) === true) {
-                try {
-                    await octokit.issues.update({
-                        ...context.repo,
-                        issue_number: refIssue.number,
-                        state: "closed"
-                    });
-                } catch(err) {
-                    core.setFailed(err);
-                    return false;
-                }
-            }
-        }
+        if (closeCompletedEpics)
+            await closeEpicIfComplete(epicIssue.number, result.body);
     }
 
     return true;
@@ -414,8 +406,9 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
     }
 }
 
-// Return whether all tasks in the supplied Epic are complete
-function allEpicTasksCompleted(epicBody) {
+// Close specifed Epic if all tasks (in the associated body) are complete
+async function closeEpicIfComplete(epicNumber, epicBody) {
+    console.log("Checking if Epic #" + epicNumber + "  is complete...");
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
     for (line of body) {
@@ -426,7 +419,7 @@ function allEpicTasksCompleted(epicBody) {
                 continue;
             }
             else if (inWorkload)
-                return true;
+                break;
         }
 
         // If we are not in the workload section, continue
@@ -441,6 +434,28 @@ function allEpicTasksCompleted(epicBody) {
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
             return false;
+    }
+
+    console.log("Closing Epic #" + epicNumber + " as all tasks have been completed.");
+    try {
+        await octokit.issues.createComment({
+            ...context.repo,
+            issue_number: epicNumber,
+            body: "`EpicBot` closed this Epic as all tasks are complete."
+        });
+    } catch(err) {
+        core.setFailed(err);
+        return false;
+    }
+    try {
+        await octokit.issues.update({
+            ...context.repo,
+            issue_number: epicNumber,
+            state: "closed"
+        });
+    } catch(err) {
+        core.setFailed(err);
+        return false;
     }
 
     return true;
