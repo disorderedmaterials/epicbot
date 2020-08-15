@@ -52,7 +52,7 @@ async function run() {
     var result = null;
     if (sourceIssue.title.startsWith(epicPrefix)) {
         try {
-            result = await updateEpicIssue(sourceIssue);
+            result = await updateEpic(sourceIssue);
         } catch(err) {
             core.setFailed(err);
             return;
@@ -71,7 +71,7 @@ async function run() {
 }
 
 // Update Epic issue
-async function updateEpicIssue(epicIssue) {
+async function updateEpic(epicIssue) {
     console.log("Updating Epic issue #" + epicIssue.number + " (" + epicIssue.title + ")...");
 
     /*
@@ -123,9 +123,9 @@ async function updateEpicIssue(epicIssue) {
         }
 
         // Update the Epic issue body based on the task issue data if it needs it
-        var result = updateTask(body[i], taskIssue.data);
+        var result = updateTask(body[i], taskIssue.data, false);
         if (!result) {
-            console.log("Nothing to update for task #" + taskIssue.number);
+            console.log("Nothing to update for task #" + taskIssue.data.number + " in Epic #" + epicIssue.number + ".");
             continue;
         }
 
@@ -290,7 +290,7 @@ function updateTaskInEpic(epicBody, taskIssue) {
             continue;
 
         // Found the taskIssue in the list, so update as necessary
-        var data = updateTask(body[i], taskIssue);
+        var data = updateTask(body[i], taskIssue, true);
         if (!data)
             return null;
 
@@ -306,7 +306,7 @@ function updateTaskInEpic(epicBody, taskIssue) {
 }
 
 // Update task data, returning new line and comment if changes were made, or null if it was up to date
-function updateTask(taskLine, taskIssue) {
+function updateTask(taskLine, taskIssue, taskIsTruth) {
     // Ensure that we're working with a task line
     var match = taskExpression.exec(taskLine);
     if (!match) {
@@ -323,8 +323,9 @@ function updateTask(taskLine, taskIssue) {
     // Check task status and title and update as necessary
     var updateTitle = false;
     var updateState = false;
-    const taskIssueClosed = taskIssue.state === "closed" ? "x" : " ";
-    if (match.groups.closed != taskIssueClosed)
+    const epicIssueClosed = match.groups.closed === "x";
+    const taskIssueClosed = taskIssue.state === "closed";
+    if (epiciIssueClosed != taskIssueClosed)
         updateState = true;
     if (match.groups.title != taskIssue.title)
         updateTitle = true;
@@ -333,17 +334,51 @@ function updateTask(taskLine, taskIssue) {
     if (!updateTitle && !updateState)
         return null;
 
-    // Reconstitute the line, create a suitable comment, and return the new data
-    var newLine = match.groups.pre + "- [" + taskIssueClosed + "] #" + taskIssue.number + " " + taskIssue.title;
-
+    var newLine = null;
     var comment = null;
-    if (updateState && updateTitle)
-        comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + " and marked it as `" + (taskIssueClosed === "x" ? "closed" : "open") + "`.";
-    else if (updateState)
-        comment = "`EpicBot` marked task #" + taskIssue.number + " as `" + (taskIssueClosed === "x" ? "closed" : "open") + "`.";
-    else if (updateTitle)
-        comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + ".";
 
+    // If the current task state in the issue is truth (taskIsTruth === true) then we update the (Epic) line from the issue.
+    // Otherwise, we update the issue from the (Epic) line.
+    if (taskIsTruth) {
+        // Reconstitute the line, create a suitable comment, and return the new data
+        newLine = match.groups.pre + "- [" + (taskIssueClosed ? "x" : " ") + "] #" + taskIssue.number + " " + taskIssue.title;
+
+        if (updateState && updateTitle)
+            comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + " and marked it as `" + (taskIssueClosed ? "closed" : "open") + "`.";
+        else if (updateState)
+            comment = "`EpicBot` marked task #" + taskIssue.number + " as `" + (taskIssueClosed ? "closed" : "open") + "`.";
+        else if (updateTitle)
+            comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + ".";
+    }
+    else
+    {
+        // Update the issue state from the current data, if it is required
+        if (updateState) {
+            // The line remains the same, but we will update the issue accordingly
+            try {
+                taskIssue = await octokit.issues.update({
+                    ...context.repo,
+                    issue_number: taskIssue.number,
+                    state: epicIssueClose ? "closed" : "open"
+                });
+            } catch(err) {
+                core.setFailed(err);
+                return false;
+            }
+        }
+
+        // Reconstitute the line, and generate a suitable comment
+        newLine = match.groups.pre + "- [" + (epicIssueClosed ? "x" : " ") + "] #" + taskIssue.number + " " + taskIssue.title;
+        if (updateState && updateTitle)
+            comment = "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " task #" + taskIssue.number + " following changes in the Epic, and refreshed its title.";
+        else if (updateState)
+            "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " task #" + taskIssue.number + " following changes in the Epic."
+        else if (updateTitle)
+            comment = "`EpicBot` refreshed the title for task #" + taskIssue.number + ".";
+        }
+    }
+
+    // Return updated data
     return {
         line: newLine,
         comment: comment
