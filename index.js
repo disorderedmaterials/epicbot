@@ -118,8 +118,8 @@ async function updateEpicIssue(epicIssue) {
         }
 
         // Did we find the issue?
-        if (taskIssue.number != match.groups.number) {
-            core.setFailed("Error - task #" + match.groups.number + " reference in Epic #" + epicIssue.number + " but it doesn't exist.");
+        if (taskIssue.number != parseInt(match.groups.number)) {
+            core.setFailed("Error - task #" + match.groups.number + " is referenced in Epic #" + epicIssue.number + " but it doesn't exist.");
             return false;
         }
 
