@@ -125,7 +125,7 @@ async function updateEpic(epicIssue) {
         // Update the Epic issue body based on the task issue data if it needs it
         var result = null;
         try {
-            result = await updateTask(body[i], taskIssue.data, false);
+            result = await updateTask(epicIssue.number, body[i], taskIssue.data, false);
         } catch(err) {
             core.setFailed(err);
             return;
@@ -213,7 +213,7 @@ async function updateEpicFromTask(taskIssue) {
         // Update the Epic issue body based on our own data if necessary
         var result = null;
         try {
-            result = await updateTaskInEpic(refIssue.body, taskIssue);
+            result = await updateTaskInEpic(refIssue.number, refIssue.body, taskIssue);
         } catch(err) {
             core.setFailed(err);
             return;
@@ -273,7 +273,7 @@ async function updateEpicFromTask(taskIssue) {
 }
 
 // Update task within supplied body text from issue data given
-async function updateTaskInEpic(epicBody, taskIssue) {
+async function updateTaskInEpic(epicNumber, epicBody, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
     var nBodyLines = body.length;
@@ -304,7 +304,7 @@ async function updateTaskInEpic(epicBody, taskIssue) {
         // Found the taskIssue in the list, so update as necessary
         var result = null;
         try {
-            result = await updateTask(body[i], taskIssue, true);
+            result = await updateTask(epicNumber, body[i], taskIssue, true);
         } catch(err) {
             core.setFailed(err);
             return;
@@ -324,7 +324,7 @@ async function updateTaskInEpic(epicBody, taskIssue) {
 }
 
 // Update task data, returning new line and comment if changes were made, or null if it was up to date
-async function updateTask(taskLine, taskIssue, taskIsTruth) {
+async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
     // Ensure that we're working with a task line
     var match = taskExpression.exec(taskLine);
     if (!match) {
@@ -377,7 +377,19 @@ async function updateTask(taskLine, taskIssue, taskIsTruth) {
                 taskIssue = await octokit.issues.update({
                     ...context.repo,
                     issue_number: taskIssue.number,
-                    state: epicIssueClose ? "closed" : "open"
+                    state: epicIssueClosed ? "closed" : "open"
+                });
+            } catch(err) {
+                core.setFailed(err);
+                return false;
+            }
+
+            // Comment on the issue
+            try {
+                taskIssue = await octokit.issues.createComment({
+                    ...context.repo,
+                    issue_number: taskIssue.number,
+                    body: "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " this issue following changes in Epic #" + epicNumber + "."
                 });
             } catch(err) {
                 core.setFailed(err);
