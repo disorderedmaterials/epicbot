@@ -23,8 +23,8 @@ async function run() {
 
     // Print config
     console.log("Config:")
-    console.log("  - epicPrefix = " + epicPrefix);
-    console.log("  - workloadMarker = " + workloadMarker);
+    console.log("  - epicPrefix = '" + epicPrefix + "'");
+    console.log("  - workloadMarker = '" + workloadMarker + "'");
     console.log("  - closeCompletedEpics = " + closeCompletedEpics);
 
     // Check config
