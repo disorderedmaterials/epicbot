@@ -124,22 +124,22 @@ async function updateEpicIssue(epicIssue) {
         }
 
         // Update the Epic issue body based on the task issue data if it needs it
-        var data = updateTask(body[i], taskIssue);
-        if (!data) {
+        var result = updateTask(body[i], taskIssue.data);
+        if (!result) {
             console.log("Nothing to update for task #" + taskIssue.number);
             continue;
         }
 
         // Store the updated line te
-        body[i] = data.line;
+        body[i] = result.line;
 
         // Comment on the Epic?
-        if (data.comment) {
+        if (result.comment) {
             try {
                 await octokit.issues.createComment({
                     ...context.repo,
                     issue_number: epicIssue.number,
-                    body: data.comment
+                    body: result.comment
                 });
             } catch(err) {
                 core.setFailed(err);
@@ -147,7 +147,7 @@ async function updateEpicIssue(epicIssue) {
             }
         }
 
-        console.log("Updated Epic #" + epicIssue.number + " with new information for task #" + taskIssue.number);
+        console.log("Updated Epic #" + epicIssue.number + " with new information for task #" + taskIssue.data.number);
     }
 
     return false;
