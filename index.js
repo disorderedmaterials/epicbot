@@ -110,7 +110,7 @@ async function updateEpicIssue(epicIssue) {
         try {
             taskIssue = await octokit.issues.get({
                 ...context.repo,
-                issue_number: 4
+                issue_number: parseInt(match.number)
             });
         } catch(err) {
             core.setFailed(err);
@@ -298,12 +298,16 @@ function updateTaskInEpic(epicBody, taskIssue) {
 function updateTask(taskLine, taskIssue) {
     // Ensure that we're working with a task line
     var match = taskExpression.exec(taskLine);
-    if (!match)
-        continue;
+    if (!match) {
+        console.log("...updateTask() - Not a task line? (\""+taskLine+"\")");
+        return null;
+    }
 
     // Does the taskIssue number match the one on this line?
-    if (match.groups.number != taskIssue.number)
-        continue;
+    if (match.groups.number != taskIssue.number) {
+        console.log("...updateTask() - Issue numbers don't match (" + match.groups.number + " vs. " + taskIssue.number + ")");
+        return null;
+    }
 
     // Check task status and title and update as necessary
     var updateTitle = false;
