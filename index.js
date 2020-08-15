@@ -103,7 +103,6 @@ async function updateEpicIssue(epicIssue) {
         let match = taskExpression.exec(body[i]);
         if (match == null)
             continue;
-        console.log(match.groups);
 
         // Retrieve task issue
         var taskIssue = null;
@@ -116,7 +115,7 @@ async function updateEpicIssue(epicIssue) {
             core.setFailed(err);
             return false;
         }
-        console.log(taskIssue);
+
         // Did we find the issue?
         if (!taskIssue) {
             core.setFailed("Error - task #" + match.groups.number + " is referenced in Epic #" + epicIssue.number + " but it doesn't exist.");
@@ -130,7 +129,7 @@ async function updateEpicIssue(epicIssue) {
             continue;
         }
 
-        // Store the updated line te
+        // Store the updated line in our body array
         body[i] = result.line;
 
         // Comment on the Epic?
@@ -150,7 +149,19 @@ async function updateEpicIssue(epicIssue) {
         console.log("Updated Epic #" + epicIssue.number + " with new information for task #" + taskIssue.data.number);
     }
 
-    return false;
+    // Commit the updated Epic body text
+    try {
+        await octokit.issues.update({
+            ...context.repo,
+            issue_number: epicIssue.number,
+            body: body.join("\r\n")
+        });
+    } catch(err) {
+        core.setFailed(err);
+        return false;
+    }
+
+    return true;
 }
 
 // Update Task issue within Epic
