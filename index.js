@@ -110,7 +110,7 @@ async function updateEpicIssue(epicIssue) {
         try {
             taskIssue = await octokit.issues.get({
                 ...context.repo,
-                issue_number: parseInt(match.number)
+                issue_number: parseInt(match.groups.number)
             });
         } catch(err) {
             core.setFailed(err);
@@ -118,14 +118,14 @@ async function updateEpicIssue(epicIssue) {
         }
 
         // Did we find the issue?
-        if (taskIssue.number != match.number) {
-            core.setFailed("Error - task #" + match.number + " reference in Epic #" + refIssue.number + " but it doesn't exist.");
+        if (taskIssue.number != match.groups.number) {
+            core.setFailed("Error - task #" + match.groups.number + " reference in Epic #" + refIssue.number + " but it doesn't exist.");
             return false;
         }
 
         // Update the Epic issue body based on the task issue data if it needs it
         var data = updateTask(body[i], taskIssue);
-        if (data) {
+        if (!data) {
             console.log("Nothing to update for task #" + taskIssue.number);
             continue;
         }
