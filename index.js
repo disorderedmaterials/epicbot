@@ -119,7 +119,7 @@ async function updateEpicIssue(epicIssue) {
 
         // Did we find the issue?
         if (taskIssue.number != match.groups.number) {
-            core.setFailed("Error - task #" + match.groups.number + " reference in Epic #" + refIssue.number + " but it doesn't exist.");
+            core.setFailed("Error - task #" + match.groups.number + " reference in Epic #" + epicIssue.number + " but it doesn't exist.");
             return false;
         }
 
@@ -138,7 +138,7 @@ async function updateEpicIssue(epicIssue) {
             try {
                 await octokit.issues.createComment({
                     ...context.repo,
-                    issue_number: refIssue.number,
+                    issue_number: epicIssue.number,
                     body: data.comment
                 });
             } catch(err) {
@@ -147,7 +147,7 @@ async function updateEpicIssue(epicIssue) {
             }
         }
 
-        console.log("Updated Epic #" + refIssue.number + " with new information for task #" + taskIssue.number);
+        console.log("Updated Epic #" + epicIssue.number + " with new information for task #" + taskIssue.number);
     }
 
     return false;
