@@ -374,7 +374,7 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
         if (updateState) {
             // The line remains the same, but we will update the issue accordingly
             try {
-                taskIssue = await octokit.issues.update({
+                await octokit.issues.update({
                     ...context.repo,
                     issue_number: taskIssue.number,
                     state: epicIssueClosed ? "closed" : "open"
@@ -386,7 +386,7 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
 
             // Comment on the issue
             try {
-                taskIssue = await octokit.issues.createComment({
+                await octokit.issues.createComment({
                     ...context.repo,
                     issue_number: taskIssue.number,
                     body: "`EpicBot` " + (epicIssueClosed ? "closed" : "opened") + " this issue following changes in Epic #" + epicNumber + "."
