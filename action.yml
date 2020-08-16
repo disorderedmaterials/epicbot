@@ -9,9 +9,9 @@ inputs:
     required: true
     default: 'Epic /'
   workload-marker:
-    description: 'Identifying text (within a heading) denoting start of workload issue section'
+    description: 'Identifying text (within a heading) denoting start of the tasks section'
     required: false
-    default: 'Workload'
+    default: 'Tasks'
   close-completed-epics:
     description: 'Whether to automatically close Epics when all workload tasks are complete'
     required: false
