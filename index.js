@@ -4,7 +4,7 @@ const core = require("@actions/core");
 // Get configuration variables
 const secretToken = core.getInput("secret-token");
 const epicPrefix = core.getInput("epic-prefix");
-const workloadMarker = core.getInput("workload-marker");
+const tasksMarker = core.getInput("tasks-marker");
 const closeCompletedEpics = core.getInput("close-completed-epics");
 
 // Constants
@@ -24,7 +24,7 @@ async function run() {
     // Print config
     console.log("Config:")
     console.log("  - epicPrefix = '" + epicPrefix + "'");
-    console.log("  - workloadMarker = '" + workloadMarker + "'");
+    console.log("  - tasksMarker = '" + tasksMarker + "'");
     console.log("  - closeCompletedEpics = " + closeCompletedEpics);
 
     // Check config
@@ -32,7 +32,7 @@ async function run() {
         core.setFailed("Epic prefix cannot be an empty string.");
         return;
     }
-    if (workloadMarker === "") {
+    if (tasksMarker === "") {
         core.setFailed("Workload marker cannot be an empty string.");
         return;
     }
@@ -87,7 +87,7 @@ async function updateEpic(epicIssue) {
     for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith(workloadMarker)) {
+            if (body[i].endsWith(tasksMarker)) {
                 inWorkload = true;
                 continue;
             }
@@ -272,7 +272,7 @@ async function updateTaskInEpic(epicNumber, epicBody, taskIssue) {
     for (var i = 0; i < nBodyLines; ++i) {
         // Check for heading, potentially indicating the start of the workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith(workloadMarker)) {
+            if (body[i].endsWith(tasksMarker)) {
                 inWorkload = true;
                 continue;
             }
@@ -414,7 +414,7 @@ async function closeEpicIfComplete(epicNumber, epicBody) {
     for (line of body) {
         // Check for heading, potentially indicating the start of the workload section
         if (line.startsWith("#")) {
-            if (line.endsWith(workloadMarker)) {
+            if (line.endsWith(tasksMarker)) {
                 inWorkload = true;
                 continue;
             }
