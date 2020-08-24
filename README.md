@@ -95,6 +95,7 @@ jobs:
 ### Configuration
 
 | Option | Type | Default | Description |
+|:------:|:----:|:-------:| ----------- |
 | close-completed-epics | bool | true | Automatically close Epic issues when all tasks are completed |
 | epic-prefix | string | "Epic /" | String used as a prefix in the title of any Epic issue, allowing `EpicBot` to recognise it |
 | secret-token | string | none | Permissions token |
