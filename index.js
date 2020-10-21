@@ -409,7 +409,8 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
 // Close specifed Epic if all tasks (in the associated body) are complete
 async function closeEpicIfComplete(epicNumber, epicBody) {
     console.log("Checking if Epic #" + epicNumber + "  is complete...");
-    var inWorkload = false
+    var inWorkload = false;
+    var nTasks = 0;
     var body = epicBody.split(/\r?\n/g);
     for (line of body) {
         // Check for heading, potentially indicating the start of the workload section
@@ -431,10 +432,16 @@ async function closeEpicIfComplete(epicNumber, epicBody) {
         if (match == null)
             continue;
 
+        ++nTasks;
+
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
             return false;
     }
+
+    // Exit here if there are no tasks associated to this epic
+    if (nTasks == 0)
+	return false;
 
     console.log("Closing Epic #" + epicNumber + " as all tasks have been completed.");
     try {
