@@ -410,13 +410,13 @@ async function closeEpicIfComplete(epicNumber, epicBody) {
     var body = epicBody.split(/\r?\n/g);
     for (line of body) {
         // Check for heading, potentially indicating the start of a workload section
-        if (body[i].startsWith("#")) {
+        if (line.startsWith("#")) {
             // We skip any section beginning with a pre-defined "Notes" marker
-            if (skipSection != "" && body[i].match(sectionSkipRE))
+            if (skipSection != "" && line.match(sectionSkipRE))
 		inWorkload = false;
             else 
                 inWorkload = true;
-	    console.log("HEADING = " + body[i]);
+	    console.log("HEADING = " + line);
 	    console.log("InWorkload = " + inWorkload);
         }
 
