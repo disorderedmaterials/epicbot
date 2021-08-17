@@ -8,10 +8,10 @@ inputs:
     description: 'Issue title prefix indicating it is an Epic'
     required: true
     default: 'Epic /'
-  tasks-marker:
-    description: 'Identifying text (within a heading) denoting start of the tasks section'
+  skip-section:
+    description: 'Identifying text starting a heading denoting a non-task section'
     required: false
-    default: 'Tasks'
+    default: 'Notes'
   close-completed-epics:
     description: 'Whether to automatically close Epics when all workload tasks are complete'
     required: false

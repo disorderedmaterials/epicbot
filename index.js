@@ -4,7 +4,7 @@ const core = require("@actions/core");
 // Get configuration variables
 const secretToken = core.getInput("secret-token");
 const epicPrefix = core.getInput("epic-prefix");
-const tasksMarker = core.getInput("tasks-marker");
+const skipSection = core.getInput("skip-section");
 const closeCompletedEpics = core.getInput("close-completed-epics");
 
 // Constants
@@ -24,7 +24,7 @@ async function run() {
     // Print config
     console.log("Config:")
     console.log("  - epicPrefix = '" + epicPrefix + "'");
-    console.log("  - tasksMarker = '" + tasksMarker + "'");
+    console.log("  - skipSection = '" + skipSection + "'");
     console.log("  - closeCompletedEpics = " + closeCompletedEpics);
 
     // Check config
@@ -32,17 +32,13 @@ async function run() {
         core.setFailed("Epic prefix cannot be an empty string.");
         return;
     }
-    if (tasksMarker === "") {
-        core.setFailed("Workload marker cannot be an empty string.");
-        return;
-    }
 
     /*
      * The issue may be an Epic that has been created / updated, in which case we
-     * reformat the 'Workload' section to include issue titles etc.
+     * reformat the workload sections to include issue titles etc.
      *
      * It may also be a normal issue that is referenced within an Epic - in that
-     * case we just update the corresponding entry in the 'Workload' section,
+     * case we just update the corresponding entry in the workload section,
      * marking the task as complete, updating its title, etc.
      *
      * Check the issue title to find out which is the case, using 'epicPrefix' to
@@ -75,24 +71,23 @@ async function updateEpic(epicIssue) {
     console.log("Updating Epic issue #" + epicIssue.number + " (" + epicIssue.title + ")...");
 
     /*
-     * Issues forming the workload for this Epic are expected to be in a section
-     * of the main issue body called 'Workload', as indicated by a markdown
-     * heading ('#', '##', etc.).
+     * Issues forming the workload for this Epic are expected to be in one or more sections
+     * of the main issue body, as indicated by a markdown heading ('#', '##', etc.).
      */
 
     // Split the Epic body into individual lines
     var inWorkload = false
     var body = epicIssue.body.split(/\r?\n/g);
+    const sectionSkipRE = new RegExp('/#+ *' + skipSection + '.*/g');
     var nBodyLines = body.length;
     for (var i = 0; i < nBodyLines; ++i) {
-        // Check for heading, potentially indicating the start of the workload section
+        // Check for heading, potentially indicating the start of a workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith(tasksMarker)) {
+            // We skip any section beginning with a pre-defined "Notes" marker
+            if (skipSection != "" && body[i].match(sectionSkipRE))
+		inWorkload = false;
+            else 
                 inWorkload = true;
-                continue;
-            }
-            else if (inWorkload)
-                break;
         }
 
         // If we are not in the workload section, no need to do anything else
@@ -268,16 +263,16 @@ async function updateEpicFromTask(taskIssue) {
 async function updateTaskInEpic(epicNumber, epicBody, taskIssue) {
     var inWorkload = false
     var body = epicBody.split(/\r?\n/g);
+    const sectionSkipRE = new RegExp('/#+ *' + skipSection + '.*/g');
     var nBodyLines = body.length;
     for (var i = 0; i < nBodyLines; ++i) {
-        // Check for heading, potentially indicating the start of the workload section
+        // Check for heading, potentially indicating the start of a workload section
         if (body[i].startsWith("#")) {
-            if (body[i].endsWith(tasksMarker)) {
+            // We skip any section beginning with a pre-defined "Notes" marker
+            if (skipSection != "" && body[i].match(sectionSkipRE)) 
+		inWorkload = false;
+            else 
                 inWorkload = true;
-                continue;
-            }
-            else if (inWorkload)
-                return null;
         }
 
         // If we are not in the workload section, no need to do anything else
@@ -408,19 +403,21 @@ async function updateTask(epicNumber, taskLine, taskIssue, taskIsTruth) {
 
 // Close specifed Epic if all tasks (in the associated body) are complete
 async function closeEpicIfComplete(epicNumber, epicBody) {
-    console.log("Checking if Epic #" + epicNumber + "  is complete...");
+    console.log("Checking if Epic #" + epicNumber + " is complete...");
     var inWorkload = false;
     var nTasks = 0;
+    const sectionSkipRE = new RegExp('/#+ *' + skipSection + '.*/g');
     var body = epicBody.split(/\r?\n/g);
     for (line of body) {
-        // Check for heading, potentially indicating the start of the workload section
-        if (line.startsWith("#")) {
-            if (line.endsWith(tasksMarker)) {
+        // Check for heading, potentially indicating the start of a workload section
+        if (body[i].startsWith("#")) {
+            // We skip any section beginning with a pre-defined "Notes" marker
+            if (skipSection != "" && body[i].match(sectionSkipRE))
+		inWorkload = false;
+            else 
                 inWorkload = true;
-                continue;
-            }
-            else if (inWorkload)
-                break;
+	    console.log("HEADING = " + body[i]);
+	    console.log("InWorkload = " + inWorkload);
         }
 
         // If we are not in the workload section, continue
@@ -433,6 +430,7 @@ async function closeEpicIfComplete(epicNumber, epicBody) {
             continue;
 
         ++nTasks;
+	console.log("Tasks = " + nTasks + " and status = [" + match.groups.closed + "]");
 
         // If the task is not complete, return false immediately
         if (match.groups.closed != "x")
