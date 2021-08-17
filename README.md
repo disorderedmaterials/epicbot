@@ -1,6 +1,6 @@
 # EpicBot
 
-Bot for managing 'epic' issues, and associated workload issues.
+Bot for managing 'epic' issues, and associated workload issues. Superseded by GitHub's "Task Lists" - https://docs.github.com/en/issues/tracking-your-work-with-issues/about-task-lists.
 
 ## Overview
 
